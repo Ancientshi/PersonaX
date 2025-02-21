@@ -3,8 +3,7 @@
 source /home86/yunxshi/.bashrc
 
 
-SIGIR_KEY=''
-DEV_KEY=''
+OPENAI_KEY=''
 
 
 
@@ -25,7 +24,7 @@ do
             for DISTANCE in "${DISTANCE_LIST[@]}"
             do 
                 python CBS_relevance.py \
-                    --api_key $SIGIR_KEY \
+                    --api_key $OPENAI_KEY \
                     --dataset 'Books' \
                     --persona_learning_type 'distill' \
                     --sampling $SAMPLING \
