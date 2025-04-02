@@ -1,6 +1,19 @@
 
 
 # PersonaX
+PersonaX provides two interfaces (`Offline_Profiling(UGC: list) -> None`, `Online_Retrieve(Item) -> Relevant Persona Snippet`), through which the `Recommendation Agent` can ultlize `PersonaX`.
+
+```
+ -----------------                                     ----------------------
+|                 |<---- Offline_Profiling (UGC) -----|                      |
+|     PersonaX    |                                   | Recommendation Agent |
+|                 |<---- Online_Retrieve (Item) ------|                      |
+|_________________|----> Relevant Persona Snippet --->|______________________|
+                                                                  |
+                                                                  v
+                                                        Recommendation Result
+```
+
 
 ## Configuration Instructions
 1. Clone the [EasyRec repository](https://github.com/HKUDS/EasyRec) to your local machine.
