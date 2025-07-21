@@ -14,6 +14,8 @@ PersonaX provides two interfaces (`Offline_Profiling(UGC: list) -> None`, `Onlin
                                                         Recommendation Result
 ```
 
+## Dataset
+Download from https://drive.google.com/file/d/1-IV7qhlZ6j_Y28XcANhgnrw-cYtJl2p4/view?usp=sharing, it includes Book480, CDs10,50,200. These samples are drawn from the original Amazon dataset. The preprocessing script for the Book480 subset is available in preprocess_long.ipynb, and a similar procedure applies to the CDs dataset.
 
 ## Configuration Instructions
 1. Clone the [EasyRec repository](https://github.com/HKUDS/EasyRec) to your local machine.
