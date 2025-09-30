@@ -15,20 +15,14 @@ torch.cuda.manual_seed_all(seed)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
-device='cuda:0'
-BGE_Reranker = FlagReranker('', use_fp16=True, device=device)
 
-def compute_score(query, doc_list, method='BGE'):
-    if method == 'BGE':
-        # 计算分数
-        scores = BGE_Reranker.compute_score([[query, doc] for doc in doc_list], normalize=True)
-    elif method=='EasyRec':
+def compute_score(query, doc_list, method='EasyRec'):
+    if method=='EasyRec':
         #访问本地8500端口，/compute_scores, scores是一个list
         response = requests.post('http://localhost:8500/compute_scores', json={'query': query, 'documents': doc_list}).json()
         scores = response['scores']
         
         
-    
     # 获取每个文档的索引及其对应的分数
     indexed_scores = list(enumerate(scores))
     
