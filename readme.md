@@ -75,6 +75,6 @@ The provided client compares PersonaX with recent, relevance, and random samplin
 
 ## License and contact
 
-No license file is currently included in this repository.
+Original PersonaX code and documentation are released under the [MIT License](LICENSE). Data in `Amazon/`, data included in notebook outputs, the EasyRec adapter (`experiments/easyrec/app.py`), and other third-party code, dependencies, and model weights are excluded. They remain subject to their original terms; see [NOTICE](NOTICE) for the EasyRec source attribution.
 
 Contact: Yunxiao.Shi@student.uts.edu.au

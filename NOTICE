@@ -1,0 +1,11 @@
+License scope and third-party attribution
+
+The MIT License in LICENSE applies to original PersonaX code and project
+documentation. It does not license datasets in Amazon/, data included in
+notebook outputs, or third-party source code, dependencies, or model weights.
+
+experiments/easyrec/app.py follows the encoding example from HKUDS/EasyRec:
+https://github.com/HKUDS/EasyRec
+EasyRec is the work of Xubin Ren and Chao Huang. The adapter is excluded from
+the PersonaX MIT license; its upstream portions and the separately obtained
+EasyRec source and checkpoints remain subject to their original terms.
