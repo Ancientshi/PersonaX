@@ -1,8 +1,11 @@
+import os
+from pathlib import Path
+
 from flask import Flask, request, jsonify
 import torch
 from model import Easyrec
 import torch.nn.functional as F
-from transformers import AutoConfig, AutoModel, AutoTokenizer, BitsAndBytesConfig
+from transformers import AutoConfig, AutoTokenizer
 import numpy as np
 import random
 
@@ -23,8 +26,10 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
 
-# Set custom cache directory
-cache_dir = "/home/yunxshi/Data/workspace/EasyRec/model"  # Change this path to your desired cache location
+# Override the cache location without editing the adapter.
+cache_dir = os.environ.get(
+    "EASYREC_CACHE_DIR", str(Path(__file__).resolve().parents[2] / "model")
+)
 # Check if CUDA is available and set the device
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 

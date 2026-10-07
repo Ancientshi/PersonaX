@@ -1,53 +1,54 @@
-
-
-
-
 # PersonaX
 
-**Architecture at a Glance**
+Code for [PersonaX: A Recommendation Agent-Oriented User Modeling Framework for Long Behavior Sequence](https://aclanthology.org/2025.findings-acl.300/) (Findings of ACL 2025).
+
+PersonaX clusters a user's interaction history, selects representative behaviors from each cluster, and generates persona snippets offline. At inference time, it retrieves the snippet most relevant to a target item. The released sampling, profiling prompts, and retrieval logic are kept in `personax/`.
+
+## Layout
+
+- `personax/`: clustering, sampling, persona learning, prompts, and the HTTP service.
+- `experiments/`: recommendation client, ranking and metric helpers, launch script, EasyRec adapter, and preprocessing notebook.
+- `Amazon/`: existing Books and CDs & Vinyl data subsets.
+
+## Installation
+
+Use Python 3.10 or 3.11 in a virtual environment:
+
+```bash
+git clone https://github.com/Ancientshi/PersonaX.git
+cd PersonaX
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
 ```
-                    Offline (per user)                          Online (per request)
-┌───────────────────────────────────────────┐          ┌───────────────────────────────────────────┐
-│                PersonaX Server            │          │           Recommendation Agent            │
-│  (Flask, embeds + cluster + persona LLM)  │          │     (LocalRanker + candidate scoring)     │
-│                                           │          │                                           │
-│ 1. /ingest_history                        │          │ 5. Build candidate set (1 positive + neg) │
-│    • Embed past positives (EasyRec)       │◄───┐     │ 6. Call /online_profile                   │
-│    • Hierarchical clustering              │    │     │    • recent | relevance | random | personax│
-│    • Per-cluster sampling (α, ratio)      │    │     │    • PersonaX distill/train (LLM)         │
-│    • Per-cluster persona via LLM          │    │     │ 7. Get persona text                       │
-│    • Persist cluster profiles & centroids │    │     │ 8. Rank candidates using persona (cosine) │
-│                                           │    │     │ 9. Output top-K + metrics                 │
-└───────────────────────────────────────────┘    │     └───────────────────────────────────────────┘
-                   ▲                             │
-                   │ 2. Store user history       │
-User CSV ───────► client_agent.py ───────────────┘     Result: recommendation list (+ ndcg/hit/mrr)
+
+The core sampling code operates on supplied embeddings. The HTTP profiling service additionally needs an embedding service and a language-model API key; see [experiment setup](experiments/README.md).
+
+## Minimal usage
+
+Select behaviors from clusters of embeddings without a model or API call:
+
+```python
+import numpy as np
+from personax.sampling import sampling
+
+clusters = [
+    np.array([[0.0, 0.0], [0.2, 0.1], [0.4, 0.0]]),
+    np.array([[1.0, 1.0], [1.1, 1.2], [1.3, 1.0]]),
+]
+selected_indices = sampling(clusters, alpha=1.06, ratio=0.6)
+# Each list contains indices relative to its input cluster.
 ```
 
-**PersonaX ⇄ Recommendation Agent (what flows where)**
+For the full workflow, start `python -m personax.server`, upload history to `/ingest_history`, then retrieve a cached snippet through `/online_profile` with `method="personax"`. Request fields and experiment commands are in [experiments/README.md](experiments/README.md).
 
-PersonaX turns raw interaction history into compact persona snippets (per-cluster offline; or sampled online).
+## Experiments
 
-The agent converts the persona text into an embedding and re-ranks candidate items with a simple cosine scorer (can be replaced by any downstream model).
+The provided client compares PersonaX with recent, relevance, and random sampling, using an EasyRec cosine ranker. Its protocol is described in [experiments/README.md](experiments/README.md). It is not a complete reproduction of the paper's AgentCF and Agent4Rec experiments.
 
-**PersonaX API**
-server_personax.py (Flask)
-- /ingest_history: offline persona learning pipeline (embed → cluster → sample → LLM distill/reflection).
-- /online_profile: online persona generation (traditional basic methods: recent/relevance/random) or retrieve cached profiles (built from clustered and sampled core behaviors when /ingest_history).
+## Citation
 
-## Dataset
-Dataset is provided in `Amazon` folder with the preprocessing script `preprocess_long.ipynb` for the Book480 subset (Similar procedure applies to the CDs dataset.). It includes Book480, CDs10, 50, and 200. These samples are drawn from the original Amazon dataset. The preprocessing script for  is available in preprocess_long.ipynb.
-
-## How to run
-1. https://github.com/HKUDS/EasyRec, put the code into EasyRec dir.
-2. python app.py, launch the flask server for EasyRec embedding model.
-3. python server_personax.py, lauch the flask server for PersonaX framework, used for modeling user persona.
-4. bash run.sh
-
-
-## Cite
-If our work inspires your research, we would greatly appreciate your citation.
-```
+```bibtex
 @inproceedings{shi-etal-2025-personax,
     title = "{P}ersona{X}: A Recommendation Agent-Oriented User Modeling Framework for Long Behavior Sequence",
     author = "Shi, Yunxiao  and
@@ -72,5 +73,8 @@ If our work inspires your research, we would greatly appreciate your citation.
 }
 ```
 
-## Contact
-Yunxiao.Shi@student.uts.edu.au
+## License and contact
+
+No license file is currently included in this repository.
+
+Contact: Yunxiao.Shi@student.uts.edu.au

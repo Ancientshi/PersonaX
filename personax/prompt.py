@@ -1,7 +1,3 @@
-import os
-import re
-
-
 Decoupling_Prompt='''
 ### Task
 You task is to decouple [User Profile] into positive part and negative part. The [User Profile] is a collection of user's preferences, dislikes, and other relevant information. You need to extract the positive part and negative part from the [User Profile]. The positive part is the user's preferences, and the negative part is the user's dislikes.

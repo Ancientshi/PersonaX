@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import random
 from scipy.spatial.distance import pdist, squareform
 import math
@@ -12,14 +11,14 @@ def select_samples(points, alpha=1.1, num_samples=10):
     center= points.mean(axis=0)
     size=len(points)
     ratio=num_samples/size
-    
+
     def cal_aim(c,point,selected_points):
         w_p = alpha ** (-10)
         w_d = 1-w_p
 
         distance=np.linalg.norm(point-center)
         easy=w_p*1/(1+distance)
-        
+
         if len(selected_points)==0:
             if_selected_points=np.array([point])
         else:
@@ -32,7 +31,7 @@ def select_samples(points, alpha=1.1, num_samples=10):
         diversity=w_d * distance_avg
         score= easy+diversity
         return score, easy, diversity
-    
+
     selected_points=[]
     selected_indexs=[]
     selected_scores=[]
@@ -41,7 +40,7 @@ def select_samples(points, alpha=1.1, num_samples=10):
         sum_score=[score[0] for score in scores]
         easy_score=[score[1] for score in scores]
         diversity_score=[score[2] for score in scores]
-        
+
         valid_indices = [j for j in range(len(sum_score)) if j not in selected_indexs]
         max_valid_index = np.argmax(np.take(sum_score, valid_indices))
         max_index = valid_indices[max_valid_index]
@@ -63,45 +62,45 @@ def get_allocation(cluster_size_list, budget):
     #The budget must be at least equal to or greater than the number of clusters, so that each cluster can be allocated at least one
     if budget<len(cluster_size_list):
         budget=len(cluster_size_list)
-        
+
     # Convert to numpy array for easier handling
     cluster_size_list = np.array(cluster_size_list)
-    
+
     # Sort cluster sizes in ascending order and get their sorted indices
     cluster_size_list_index = np.argsort(cluster_size_list)
     sorted_cluster_size_list = cluster_size_list[cluster_size_list_index]
-    
+
     # Initialize allocation list
     allocation_list = []
-    
+
     # Distribute the budget
     for i in range(len(sorted_cluster_size_list)):
         unallocated_strata = len(sorted_cluster_size_list) - len(allocation_list)
         avg = budget // unallocated_strata
         cluster_size = sorted_cluster_size_list[i]
-        
+
         # Allocate budget
         if cluster_size <= avg:
             allocation_list.append(cluster_size)
         else:
             allocation_list.append(avg)
-        
+
         # Update the remaining budget
         budget -= allocation_list[-1]
-    
+
     if budget > 0:
         for i in range(budget):
             allocation_list[-(i+1)] += 1
-    
+
     # Restore the allocation list to the original order
     final_allocation_list = [0] * len(cluster_size_list)
     for i, index in enumerate(cluster_size_list_index):
         final_allocation_list[index] = allocation_list[i]
-    
+
     return final_allocation_list
 
-    
-    
+
+
 
 
 def sampling(cluster_list,alpha=1.1, ratio=0.6):
@@ -115,7 +114,7 @@ def sampling(cluster_list,alpha=1.1, ratio=0.6):
         cluster=cluster_list[i]
         selected_points, selected_indexs,selected_scores =select_samples(cluster,alpha,allocation[i])
         selected_indexs_list.append(selected_indexs)
-        
+
     return selected_indexs_list
 
 
