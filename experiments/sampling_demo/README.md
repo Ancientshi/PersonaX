@@ -10,6 +10,9 @@ precomputed results for 17 values of `alpha`, three coordinate scales, and
 comparison. `sampling-data.json` records the input, selection order, internal
 scores, source commit, and source file hash.
 
+`sampling-preview.gif` is an animated preview for the project README. It uses
+the same precomputed selection orders as the HTML.
+
 To regenerate from the repository root, install the dependencies and Matplotlib,
 then run:
 
@@ -20,6 +23,13 @@ python -m experiments.sampling_demo.generate
 ```
 
 The script does not download models or datasets.
+
+After generating both demos' data, regenerate the README animations with:
+
+```bash
+pip install pillow
+python -m experiments.render_demo_previews
+```
 
 The displayed diagnostics are mean distance to the full input centroid, mean
 distance over unordered selected pairs, and mean distance from every input

@@ -4,6 +4,22 @@ Code for [PersonaX: A Recommendation Agent-Oriented User Modeling Framework for 
 
 PersonaX clusters a user's interaction history, selects representative behaviors from each cluster, and generates persona snippets offline. At inference time, it retrieves the snippet most relevant to a target item. The released sampling, profiling prompts, and retrieval logic are kept in `personax/`.
 
+## Method demos
+
+These animated previews use the released functions on small synthetic inputs. For the full interaction, download the linked HTML and open it in a browser. Both demos work offline without models or API calls.
+
+**Sample selection.** Change `alpha` to adjust the center preference and diversity weights, or change the sample count to extend the selection.
+
+[![Sample selection parameter preview](experiments/sampling_demo/sampling-preview.gif)](experiments/sampling_demo/select-samples-explorer.html)
+
+[Interactive HTML](experiments/sampling_demo/select-samples-explorer.html) · [Source and regeneration](experiments/sampling_demo/README.md)
+
+**Budget allocation.** Allocation is approximately equal, capped by each cluster's size. Once a small cluster is full, the remaining budget is shared among the others. A requested budget below the number of clusters is raised to that minimum.
+
+[![Budget allocation parameter preview](experiments/budget_demo/budget-allocation-preview.gif)](experiments/budget_demo/budget-allocation-explorer.html)
+
+[Interactive HTML](experiments/budget_demo/budget-allocation-explorer.html) · [Source and regeneration](experiments/budget_demo/README.md)
+
 ## Layout
 
 - `personax/`: clustering, sampling, persona learning, prompts, and the HTTP service.
@@ -39,8 +55,6 @@ clusters = [
 selected_indices = sampling(clusters, alpha=1.06, ratio=0.6)
 # Each list contains indices relative to its input cluster.
 ```
-
-The [sampling parameter demo](experiments/sampling_demo/README.md) shows how `alpha`, sample count, and input scale affect selection on fixed synthetic points. Download the [self-contained HTML](experiments/sampling_demo/select-samples-explorer.html) and open it in a browser, or view the [comparison figure](experiments/sampling_demo/select-samples-comparison.png).
 
 For the full workflow, start `python -m personax.server`, upload history to `/ingest_history`, then retrieve a cached snippet through `/online_profile` with `method="personax"`. Request fields and experiment commands are in [experiments/README.md](experiments/README.md).
 

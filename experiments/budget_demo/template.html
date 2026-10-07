@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>PersonaX budget allocation explorer</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #ffffff;
+      --fg: #192331;
+      --muted: #526174;
+      --line: #ccd3dc;
+      --grid: #e4e9ef;
+      --capacity: #c5cdd7;
+      --blue: #1663af;
+      --focus: #244be1;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #131920;
+        --fg: #edf2f9;
+        --muted: #b3bfce;
+        --line: #4b5969;
+        --grid: #2d3946;
+        --capacity: #556476;
+        --blue: #6bb8ff;
+        --focus: #a7b6ff;
+      }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); line-height: 1.6; }
+    main { max-width: 980px; margin: 0 auto; padding: 28px 28px 22px; }
+    h1 { font-size: 25px; line-height: 1.3; font-weight: 650; margin: 0 0 9px; }
+    h2 { font-size: 19px; line-height: 1.35; font-weight: 600; margin: 0; }
+    p { margin: 0 0 9px; }
+    code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .93em; }
+    .intro { color: var(--muted); max-width: 850px; }
+    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 20px 0 0; padding: 15px 0 13px; border-top: 1px solid var(--line); }
+    .field { min-width: 0; }
+    .field label { display: flex; justify-content: space-between; gap: 10px; font-weight: 600; margin-bottom: 7px; }
+    select { width: 100%; min-height: 40px; padding: 6px 9px; border: 1px solid var(--line); border-radius: 5px; background: var(--bg); color: var(--fg); font: inherit; }
+    input[type="range"] { width: 100%; min-height: 40px; margin: 0; accent-color: var(--blue); }
+    select:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+    .hint { color: var(--muted); font-size: 13px; margin-top: 5px; }
+    output, .num { font-variant-numeric: tabular-nums; }
+    .counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin: 0; padding: 13px 0 10px; border-top: 1px solid var(--line); }
+    .counts dt { color: var(--muted); font-size: 13px; }
+    .counts dd { margin: 2px 0 0; font-size: 24px; font-weight: 600; line-height: 1.3; font-variant-numeric: tabular-nums; }
+    .status { margin: 0 0 18px; font-size: 14px; min-height: 23px; }
+    .chart-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 9px 18px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 15px; font-size: 13px; color: var(--muted); }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .legend i { width: 18px; height: 9px; display: inline-block; background: var(--capacity); }
+    .legend .allocated { background: var(--blue); }
+    .plot { display: block; width: 100%; overflow: visible; }
+    .plot text { fill: var(--fg); font: 13px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .plot .axis, .plot .full-label { fill: var(--muted); font-size: 12px; }
+    .plot .count { font-variant-numeric: tabular-nums; }
+    .plot .full-label { fill: var(--blue); }
+    .chart-note { margin: 0 0 15px; font-size: 13px; color: var(--muted); }
+    details { border-top: 1px solid var(--line); padding-top: 12px; }
+    summary { font-weight: 600; }
+    .table-scroll { overflow: auto; margin: 10px 0 7px; }
+    table { border-collapse: collapse; width: 100%; min-width: 640px; text-align: right; font-size: 13px; font-variant-numeric: tabular-nums; }
+    th { font-weight: 600; }
+    th, td { padding: 8px 9px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+    th:first-child, td:first-child { padding-left: 0; text-align: left; }
+    th { white-space: normal; }
+    .notes { border-top: 1px solid var(--line); margin-top: 16px; padding-top: 14px; }
+    .notes h2 { margin-bottom: 9px; }
+    .notes p { color: var(--muted); font-size: 14px; margin: 0 0 8px; }
+    .notes strong { color: var(--fg); font-weight: 600; }
+    .source { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+    .source a { color: var(--fg); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    .source code { font-size: 12px; }
+    .error { padding: 12px; border: 1px solid var(--line); }
+    @media (max-width: 620px) {
+      main { padding: 22px 18px; }
+      .controls { grid-template-columns: 1fr; gap: 14px; }
+      h1 { font-size: 22px; }
+      .counts { gap: 12px; }
+      .counts dd { font-size: 22px; }
+    }
+    @media (max-width: 390px) {
+      main { padding: 20px 12px; }
+      .counts dt { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+<main id="budget-explorer">
+  <header>
+    <h1>PersonaX: budget allocation</h1>
+    <p class="intro">Explore <code>get_allocation(cluster_size_list, budget)</code> on four small examples. Allocations and step traces are precomputed from the repository's original function.</p>
+  </header>
+
+  <div class="controls" aria-label="Allocation inputs">
+    <div class="field">
+      <label for="scenario">Cluster sizes</label>
+      <select id="scenario" aria-describedby="scenario-description"></select>
+      <div class="hint" id="scenario-description"></div>
+    </div>
+    <div class="field">
+      <label for="budget">Requested budget <output id="budget-output">20 / 32</output></label>
+      <input id="budget" type="range" min="0" max="32" step="1" value="20" aria-describedby="budget-hint">
+      <div class="hint" id="budget-hint">A budget below the number of clusters is raised to that number.</div>
+    </div>
+  </div>
+
+  <dl class="counts" aria-label="Budget counts">
+    <div><dt>Requested budget</dt><dd id="requested">20</dd></div>
+    <div><dt>Effective budget</dt><dd id="effective">20</dd></div>
+    <div><dt>Allocated items</dt><dd id="allocated">20</dd></div>
+  </dl>
+  <p class="status" id="budget-status" aria-live="polite"></p>
+
+  <section aria-labelledby="allocation-heading">
+    <div class="chart-heading">
+      <h2 id="allocation-heading">Allocation by input cluster</h2>
+      <div class="legend" aria-label="Plot legend">
+        <span><i aria-hidden="true"></i>Capacity</span>
+        <span><i class="allocated" aria-hidden="true"></i>Allocated</span>
+      </div>
+    </div>
+    <svg id="allocation-plot" class="plot" role="img" aria-labelledby="allocation-title allocation-desc"></svg>
+    <p class="chart-note" id="chart-note"></p>
+  </section>
+
+  <details>
+    <summary>Trace the allocation in ascending size order</summary>
+    <p class="hint" id="sorted-order"></p>
+    <div class="table-scroll">
+      <table aria-label="Allocation steps in the function's sorted order">
+        <thead><tr><th scope="col">Cluster</th><th scope="col">Size</th><th scope="col">Budget before</th><th scope="col">Clusters left</th><th scope="col">Floor share</th><th scope="col">Allocated</th><th scope="col">Budget after</th></tr></thead>
+        <tbody id="step-body"></tbody>
+      </table>
+    </div>
+    <p class="hint">Floor share is the remaining budget divided by the remaining cluster count, rounded down. Rows use the function's actual NumPy sort order; the output above is restored to original input order.</p>
+  </details>
+
+  <section class="notes" aria-labelledby="reading-heading">
+    <h2 id="reading-heading">Reading the allocation</h2>
+    <p><strong>Approximately equal counts, not proportional shares.</strong> The function visits clusters from smallest to largest. Each receives the smaller of its size and the current floor share. Filling a small cluster leaves more budget for the remaining clusters.</p>
+    <p><strong>Budgets below the cluster count are raised.</strong> With positive cluster sizes, the effective budget gives every cluster at least one item. All examples have 4 clusters and 32 items; requested budgets from 0 to 3 therefore become 4. The final unallocated budget is zero throughout the displayed range.</p>
+    <p><strong>From ratio to budget.</strong> The <code>sampling</code> wrapper first computes <code>ceil(total_size × ratio)</code>, then passes that budget to <code>get_allocation</code>. The minimum budget rule still applies.</p>
+    <p><strong>Safe inputs for this demo.</strong> Cluster sizes are positive integers; the requested budget is an integer in <code>0..N</code>, where <code>N</code> is their sum. The original function does not validate these limits or safely cap budgets above total capacity. NumPy's <code>argsort</code> is not explicitly stable for equal sizes, so no fixed tie priority is assumed.</p>
+  </section>
+
+  <footer class="source">
+    Source: <a id="source-link" href="https://github.com/Ancientshi/PersonaX/blob/master/personax/sampling.py">personax/sampling.py</a> · commit <code id="source-commit"></code><br>
+    This page displays precomputed results. It runs no models, reads no real datasets, and makes no network requests.<br>
+    Source file SHA-256: <code id="source-sha"></code>
+  </footer>
+</main>
+<script>
+(() => {
+  'use strict';
+  const DATA = __DEMO_DATA__;
+  const root = document.getElementById('budget-explorer');
+  const $ = id => root.querySelector('#' + id);
+  const NS = 'http://www.w3.org/2000/svg';
+  const state = { scenario: 'capped', budget: 20 };
+  if (!DATA || !Array.isArray(DATA.scenarios) || !DATA.scenarios.length) {
+    root.innerHTML = '<p class="error" role="alert">The precomputed allocation results are incomplete, so the explorer cannot be displayed.</p>';
+    return;
+  }
+  const scenarios = new Map(DATA.scenarios.map(scenario => [scenario.id, scenario]));
+  const largestCluster = Math.max(...DATA.scenarios.flatMap(scenario => scenario.sizes));
+  const axisMaximum = Math.max(4, Math.ceil(largestCluster / 4) * 4);
+  DATA.scenarios.forEach(scenario => {
+    const option = document.createElement('option');
+    option.value = scenario.id;
+    option.textContent = `${scenario.label}: [${scenario.sizes.join(', ')}]`;
+    $('scenario').appendChild(option);
+  });
+  $('scenario').value = state.scenario;
+  $('source-link').href = `https://github.com/Ancientshi/PersonaX/blob/${DATA.source_commit}/personax/sampling.py`;
+  $('source-commit').textContent = DATA.source_commit;
+  $('source-sha').textContent = DATA.source_sha256;
+
+  function el(tag, attributes, parent, content) {
+    const element = document.createElementNS(NS, tag);
+    Object.entries(attributes || {}).forEach(([name, value]) => element.setAttribute(name, String(value)));
+    if (content !== undefined) element.textContent = content;
+    if (parent) parent.appendChild(element);
+    return element;
+  }
+
+  function draw(scenario, run) {
+    const svg = $('allocation-plot');
+    const width = Math.max(264, Math.round(svg.getBoundingClientRect().width));
+    const left = 96, right = 54, top = 25, rowHeight = 49;
+    const chartWidth = width - left - right;
+    const axisY = top + rowHeight * scenario.cluster_count;
+    const height = axisY + 48;
+    const px = value => left + value / axisMaximum * chartWidth;
+    svg.replaceChildren();
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.style.height = height + 'px';
+    el('title', { id: 'allocation-title' }, svg, `${scenario.label}, requested budget ${run.requested_budget}, effective budget ${run.effective_budget}, ${run.allocated_total} items allocated`);
+    el('desc', { id: 'allocation-desc' }, svg, `Bars follow the original input order. Gray is cluster capacity and blue is its allocation. ${scenario.sizes.map((size, index) => `Cluster ${index + 1}: ${run.allocations[index]} of ${size} items${run.allocations[index] === size ? ', fully sampled' : ''}`).join('. ')}. All rows and scenarios use the same count axis.`);
+    for (let tick = 0; tick <= 4; tick++) {
+      const value = axisMaximum * tick / 4;
+      const x = px(value);
+      el('line', { x1: x, x2: x, y1: top - 10, y2: axisY - 6, stroke: 'var(--grid)', 'stroke-width': 1 }, svg);
+      el('text', { x, y: axisY + 13, 'text-anchor': 'middle', class: 'axis' }, svg, value);
+    }
+    scenario.sizes.forEach((size, index) => {
+      const allocation = run.allocations[index];
+      const y = top + rowHeight * index;
+      el('text', { x: 0, y: y + 8 }, svg, `Cluster ${index + 1}`);
+      if (allocation === size) el('text', { x: 0, y: y + 25, class: 'full-label' }, svg, 'Fully sampled');
+      const capacity = el('rect', { x: left, y, width: px(size) - left, height: 13, fill: 'var(--capacity)' }, svg);
+      el('title', {}, capacity, `Cluster ${index + 1} capacity: ${size} items`);
+      const bar = el('rect', { x: left, y, width: px(allocation) - left, height: 13, fill: 'var(--blue)' }, svg);
+      el('title', {}, bar, `Cluster ${index + 1}: ${allocation} of ${size} items allocated`);
+      el('text', { x: width - 2, y: y + 11, 'text-anchor': 'end', class: 'count' }, svg, `${allocation} / ${size}`);
+    });
+    el('text', { x: left + chartWidth / 2, y: axisY + 37, 'text-anchor': 'middle', class: 'axis' }, svg, 'Items per cluster');
+  }
+
+  function update() {
+    const scenario = scenarios.get(state.scenario);
+    const run = scenario?.runs[String(state.budget)];
+    if (!run) throw new Error(`Missing precomputed allocation: scenario=${state.scenario}, budget=${state.budget}`);
+    $('scenario-description').textContent = scenario.description;
+    $('budget').max = String(scenario.total_size);
+    $('budget').value = String(state.budget);
+    $('budget-output').textContent = `${run.requested_budget} / ${scenario.total_size}`;
+    $('requested').textContent = run.requested_budget;
+    $('effective').textContent = run.effective_budget;
+    $('allocated').textContent = run.allocated_total;
+    $('budget-status').textContent = run.effective_budget > run.requested_budget
+      ? `The function raises the requested budget from ${run.requested_budget} to ${run.effective_budget} for ${scenario.cluster_count} clusters. Unallocated budget: ${run.unallocated_budget}.`
+      : `All ${run.allocated_total} allocated items fit within the cluster capacities. Unallocated budget: ${run.unallocated_budget}.`;
+    const fullCount = run.allocations.filter((allocation, index) => allocation === scenario.sizes[index]).length;
+    $('chart-note').textContent = `${fullCount} of ${scenario.cluster_count} clusters are fully sampled. Labels show allocated / capacity; cluster IDs are 1-based input indices.`;
+    $('sorted-order').textContent = `Sorted cluster IDs: ${scenario.sort_order.map(index => index + 1).join(' → ')}.`;
+    $('step-body').replaceChildren();
+    run.steps.forEach(step => {
+      const row = document.createElement('tr');
+      [`Cluster ${step.original_index + 1}`, step.size, step.remaining_before, step.remaining_clusters, step.floor_share, step.allocated, step.remaining_after].forEach(value => {
+        const cell = document.createElement('td');
+        cell.textContent = value;
+        row.appendChild(cell);
+      });
+      $('step-body').appendChild(row);
+    });
+    draw(scenario, run);
+  }
+  $('scenario').addEventListener('change', event => { state.scenario = event.target.value; update(); });
+  $('budget').addEventListener('input', event => { state.budget = Number(event.target.value); update(); });
+  let resizeFrame;
+  new ResizeObserver(() => {
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(update);
+  }).observe(root);
+  update();
+})();
+</script>
+</body>
+</html>
