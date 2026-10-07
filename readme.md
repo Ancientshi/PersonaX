@@ -40,6 +40,8 @@ selected_indices = sampling(clusters, alpha=1.06, ratio=0.6)
 # Each list contains indices relative to its input cluster.
 ```
 
+The [sampling parameter demo](experiments/sampling_demo/README.md) shows how `alpha`, sample count, and input scale affect selection on fixed synthetic points. Download the [self-contained HTML](experiments/sampling_demo/select-samples-explorer.html) and open it in a browser, or view the [comparison figure](experiments/sampling_demo/select-samples-comparison.png).
+
 For the full workflow, start `python -m personax.server`, upload history to `/ingest_history`, then retrieve a cached snippet through `/online_profile` with `method="personax"`. Request fields and experiment commands are in [experiments/README.md](experiments/README.md).
 
 ## Experiments

@@ -1,0 +1,195 @@
+[
+  {
+    "alpha": 1.001,
+    "num_samples": 8,
+    "indices": [
+      22,
+      3,
+      14,
+      13,
+      12,
+      9,
+      23,
+      10
+    ],
+    "metrics": {
+      "mean_center_distance": 0.1679421972709575,
+      "mean_pairwise_distance": 0.23737055692518813,
+      "mean_coverage_distance": 0.49307211876508306
+    },
+    "last_score": [
+      0.8155349991554436,
+      0.807272541312303,
+      0.008262457843140667
+    ]
+  },
+  {
+    "alpha": 1.06,
+    "num_samples": 8,
+    "indices": [
+      22,
+      43,
+      42,
+      3,
+      40,
+      41,
+      14,
+      37
+    ],
+    "metrics": {
+      "mean_center_distance": 0.9205265959308162,
+      "mean_pairwise_distance": 1.5413596030737273,
+      "mean_coverage_distance": 0.3394848187143413
+    },
+    "last_score": [
+      2.6507208015987263,
+      0.26836722180583034,
+      2.382353579792896
+    ]
+  },
+  {
+    "alpha": 1.1,
+    "num_samples": 8,
+    "indices": [
+      22,
+      43,
+      42,
+      40,
+      41,
+      37,
+      29,
+      34
+    ],
+    "metrics": {
+      "mean_center_distance": 1.1679062890482088,
+      "mean_pairwise_distance": 1.777624200126305,
+      "mean_coverage_distance": 0.31767255398643096
+    },
+    "last_score": [
+      4.0071249436952785,
+      0.18416902845503355,
+      3.822955915240245
+    ]
+  },
+  {
+    "alpha": 1.4,
+    "num_samples": 8,
+    "indices": [
+      22,
+      43,
+      42,
+      40,
+      41,
+      37,
+      29,
+      34
+    ],
+    "metrics": {
+      "mean_center_distance": 1.1679062890482088,
+      "mean_pairwise_distance": 1.777624200126305,
+      "mean_coverage_distance": 0.31767255398643096
+    },
+    "last_score": [
+      6.023105435676927,
+      0.016514411115659346,
+      6.006591024561267
+    ]
+  },
+  {
+    "alpha": 1.06,
+    "num_samples": 3,
+    "indices": [
+      22,
+      43,
+      42
+    ],
+    "metrics": {
+      "mean_center_distance": 1.0237291736887206,
+      "mean_pairwise_distance": 2.001041327083271,
+      "mean_coverage_distance": 0.5230288213796043
+    },
+    "last_score": [
+      1.1041113809040972,
+      0.22044107925542064,
+      0.8836703016486765
+    ]
+  },
+  {
+    "alpha": 1.06,
+    "num_samples": 6,
+    "indices": [
+      22,
+      43,
+      42,
+      3,
+      40,
+      41
+    ],
+    "metrics": {
+      "mean_center_distance": 1.0218653765686687,
+      "mean_pairwise_distance": 1.7644852185737276,
+      "mean_coverage_distance": 0.39120177026163855
+    },
+    "last_score": [
+      2.174756717870531,
+      0.2267419964249609,
+      1.9480147214455699
+    ]
+  },
+  {
+    "alpha": 1.06,
+    "num_samples": 10,
+    "indices": [
+      22,
+      43,
+      42,
+      3,
+      40,
+      41,
+      14,
+      37,
+      29,
+      13
+    ],
+    "metrics": {
+      "mean_center_distance": 0.8652794286874179,
+      "mean_pairwise_distance": 1.425476763464522,
+      "mean_coverage_distance": 0.30011549467807125
+    },
+    "last_score": [
+      3.3147952433048156,
+      0.4820543147105191,
+      2.8327409285942964
+    ]
+  },
+  {
+    "alpha": 1.06,
+    "num_samples": 14,
+    "indices": [
+      22,
+      43,
+      42,
+      3,
+      40,
+      41,
+      14,
+      37,
+      29,
+      13,
+      34,
+      26,
+      12,
+      38
+    ],
+    "metrics": {
+      "mean_center_distance": 0.8600264581422031,
+      "mean_pairwise_distance": 1.3614254453838845,
+      "mean_coverage_distance": 0.21105026223707107
+    },
+    "last_score": [
+      4.1856120772441,
+      0.277730258349896,
+      3.907881818894204
+    ]
+  }
+]

@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>PersonaX select_samples explorer</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #ffffff;
+      --fg: #192331;
+      --muted: #526174;
+      --line: #ccd3dc;
+      --grid: #e4e9ef;
+      --surface: #f5f7fa;
+      --point: #9ca6b4;
+      --blue: #1663af;
+      --orange: #a64d12;
+      --center: #111111;
+      --focus: #244be1;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 15px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #131920;
+        --fg: #edf2f9;
+        --muted: #b3bfce;
+        --line: #4b5969;
+        --grid: #2d3946;
+        --surface: #1c2631;
+        --point: #8793a2;
+        --blue: #6bb8ff;
+        --orange: #ffb176;
+        --center: #f8fafc;
+        --focus: #a7b6ff;
+      }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); line-height: 1.6; }
+    main { max-width: 1220px; margin: 0 auto; padding: 30px 28px 24px; }
+    h1 { font-size: 25px; line-height: 1.3; font-weight: 650; margin: 0 0 9px; }
+    h2 { font-size: 19px; line-height: 1.35; font-weight: 600; margin: 0; }
+    h3 { font-size: 16px; font-weight: 600; margin: 18px 0 7px; }
+    p { margin: 0 0 10px; }
+    .intro { max-width: 850px; color: var(--muted); }
+    code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .93em; }
+    .controls { display: grid; grid-template-columns: 1.2fr 1fr .85fr; gap: 22px; margin: 23px 0 12px; padding: 17px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .field { min-width: 0; }
+    .field label { display: flex; justify-content: space-between; gap: 8px; font-weight: 600; margin-bottom: 7px; }
+    select { width: 100%; min-height: 40px; padding: 6px 9px; border: 1px solid var(--line); border-radius: 5px; background: var(--bg); color: var(--fg); font: inherit; }
+    input[type="range"] { width: 100%; min-height: 40px; margin: 0; accent-color: var(--orange); }
+    select:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+    .hint { color: var(--muted); font-size: 13px; margin-top: 5px; }
+    output, .num { font-variant-numeric: tabular-nums; }
+    .weight-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; margin-bottom: 6px; color: var(--muted); }
+    .weight-row strong { font-weight: 600; color: var(--fg); }
+    .comparison-message { margin: 0 0 17px; min-height: 24px; }
+    .plots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+    .plot-panel { min-width: 0; }
+    .plot-heading { display: flex; gap: 9px; align-items: baseline; flex-wrap: wrap; }
+    .plot-heading .caption { color: var(--muted); font-size: 13px; }
+    .series-key { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; background: var(--blue); }
+    .current .series-key { background: var(--orange); }
+    .plot { display: block; width: 100%; overflow: visible; }
+    .plot text { fill: var(--fg); font: 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .plot .axis { fill: var(--muted); }
+    .plot .order { fill: var(--bg); font-weight: 650; pointer-events: none; }
+    .selection-line { font-size: 13px; color: var(--muted); padding: 4px 0 11px; line-height: 1.9; overflow-wrap: anywhere; }
+    .selection-line strong { color: var(--fg); font-weight: 600; }
+    .legend { display: flex; flex-wrap: wrap; gap: 7px 22px; font-size: 13px; color: var(--muted); padding-bottom: 17px; }
+    .legend span { display: inline-flex; align-items: center; gap: 7px; }
+    .legend .dot { width: 9px; height: 9px; background: var(--point); border-radius: 50%; display: inline-block; }
+    .legend .order-dot { width: 18px; height: 18px; line-height: 18px; text-align: center; background: var(--blue); color: var(--bg); border-radius: 50%; font-size: 11px; font-weight: 650; display: inline-block; }
+    .legend .diamond { width: 11px; height: 11px; border: 2px solid var(--fg); transform: rotate(45deg); display: inline-block; }
+    .legend .cross { font-size: 21px; line-height: 18px; color: var(--center); font-weight: 500; }
+    .metric-wrap { border-top: 1px solid var(--line); padding-top: 14px; }
+    table { border-collapse: collapse; width: 100%; text-align: left; font-size: 14px; }
+    th { font-weight: 600; }
+    th, td { padding: 9px 10px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+    th:first-child, td:first-child { padding-left: 0; }
+    td .definition { display: block; color: var(--muted); font-size: 12px; margin-top: 3px; }
+    .metric-table td:nth-child(2), .metric-table td:nth-child(3), .metric-table th:nth-child(2), .metric-table th:nth-child(3) { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .metric-table th:nth-child(2), .metric-table th:nth-child(3) { white-space: normal; overflow-wrap: anywhere; }
+    .metric-table th:nth-child(2) { width: 18%; }
+    .metric-table th:nth-child(3) { width: 18%; }
+    .table-note { color: var(--muted); font-size: 13px; margin: 9px 0 18px; }
+    .notes { border-top: 1px solid var(--line); padding-top: 14px; }
+    .notes p { color: var(--muted); font-size: 14px; margin: 0 0 8px; }
+    .notes strong { color: var(--fg); font-weight: 600; }
+    details { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 13px; }
+    summary { font-weight: 600; }
+    .score-scroll { overflow: auto; max-height: 360px; margin: 11px 0 7px; }
+    .score-table { min-width: 520px; font-size: 13px; }
+    .score-table th { position: sticky; top: 0; background: var(--bg); }
+    .score-table td:not(:first-child), .score-table th:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+    .source { margin-top: 20px; padding-top: 13px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+    .source a { color: var(--fg); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    .source code { font-size: 12px; }
+    .error { padding: 12px; border: 1px solid var(--line); color: var(--fg); }
+    @media (max-width: 720px) {
+      main { padding: 22px 18px; }
+      .controls { grid-template-columns: 1fr 1fr; gap: 16px; }
+      .field:first-child { grid-column: 1 / -1; }
+      .plots { grid-template-columns: 1fr; gap: 16px; }
+      h1 { font-size: 22px; }
+      .metric-table { font-size: 13px; }
+      .metric-table th:nth-child(2), .metric-table th:nth-child(3) { width: 22%; }
+      th, td { padding: 8px 6px; }
+    }
+    @media (max-width: 390px) {
+      main { padding: 20px 12px; }
+      .controls { grid-template-columns: 1fr; }
+      .field:first-child { grid-column: auto; }
+      .weight-row { gap: 5px 14px; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+<main id="sampling-explorer">
+  <header>
+    <h1>PersonaX: <code>select_samples</code> explorer</h1>
+    <p class="intro">Compare how <code>alpha</code>, <code>num_samples</code>, and input scale affect selection on the same 44 synthetic points. All selection orders and scores come from the repository's original function.</p>
+  </header>
+
+  <div class="controls" aria-label="Sampling parameters">
+    <div class="field">
+      <label for="alpha">alpha <output id="alpha-output">1.06</output></label>
+      <select id="alpha"></select>
+      <div class="hint">Function default: 1.1. Common experiment setting: 1.06.</div>
+    </div>
+    <div class="field">
+      <label for="sample-count">num_samples <output id="count-output">8 / 44</output></label>
+      <input id="sample-count" type="range" min="1" max="44" step="1" value="8" aria-describedby="count-hint">
+      <div class="hint" id="count-hint">At fixed alpha and scale, a smaller k is a prefix of a larger k.</div>
+    </div>
+    <div class="field">
+      <label for="scale">Input scale</label>
+      <select id="scale">
+        <option value="0.5">All coordinates × 0.5</option>
+        <option value="1" selected>All coordinates × 1</option>
+        <option value="2">All coordinates × 2</option>
+      </select>
+      <div class="hint">Relative positions and input order stay the same.</div>
+    </div>
+  </div>
+
+  <div class="weight-row">
+    <span>Current <code>w_p = alpha⁻¹⁰</code>: <strong id="wp" class="num"></strong></span>
+    <span><code>w_d = 1 − w_p</code>: <strong id="wd" class="num"></strong></span>
+  </div>
+  <p class="comparison-message" id="comparison-message" aria-live="polite"></p>
+
+  <div class="plots">
+    <section class="plot-panel reference" aria-labelledby="reference-heading">
+      <div class="plot-heading">
+        <h2 id="reference-heading"><span class="series-key" aria-hidden="true"></span>Reference: alpha = 1.001</h2>
+        <span class="caption">Stronger preference for points near the centroid</span>
+      </div>
+      <svg class="plot" id="reference-plot" role="img" aria-labelledby="reference-plot-title reference-plot-desc"></svg>
+      <div class="selection-line" id="reference-selection"></div>
+    </section>
+    <section class="plot-panel current" aria-labelledby="current-heading">
+      <div class="plot-heading">
+        <h2 id="current-heading"><span class="series-key" aria-hidden="true"></span>Current: alpha = <span id="current-alpha">1.06</span></h2>
+        <span class="caption" id="current-caption"></span>
+      </div>
+      <svg class="plot" id="current-plot" role="img" aria-labelledby="current-plot-title current-plot-desc"></svg>
+      <div class="selection-line" id="current-selection"></div>
+    </section>
+  </div>
+  <div class="legend" aria-label="Plot legend">
+    <span><i class="dot" aria-hidden="true"></i>Unselected point</span>
+    <span><i class="order-dot" aria-hidden="true">2</i>Numbers: selection order (first 14 steps)</span>
+    <span><i class="diamond" aria-hidden="true"></i>First point (nearest the centroid)</span>
+    <span><i class="cross" aria-hidden="true">+</i>Centroid of all points</span>
+  </div>
+
+  <section class="metric-wrap" aria-labelledby="metrics-heading">
+    <h2 id="metrics-heading">Geometric diagnostics</h2>
+    <table class="metric-table" aria-describedby="metric-note">
+      <thead><tr><th scope="col">Metric and interpretation</th><th scope="col">Reference 1.001</th><th scope="col">Current <span id="metric-alpha">1.06</span></th></tr></thead>
+      <tbody>
+        <tr><td>Mean selected-point distance to the full centroid ↓<span class="definition">Lower: selected points lie closer to the overall center.</span></td><td id="ref-centroid"></td><td id="cur-centroid"></td></tr>
+        <tr><td>Mean pairwise distance among selected points ↑<span class="definition">Average over all unordered pairs. Higher: selected points are more spread out.</span></td><td id="ref-pairwise"></td><td id="cur-pairwise"></td></tr>
+        <tr><td>Mean distance to the nearest selected point ↓<span class="definition">Average over all input points, including zero distances for selected points. Lower: broader geometric coverage.</span></td><td id="ref-coverage"></td><td id="cur-coverage"></td></tr>
+      </tbody>
+    </table>
+    <p class="table-note" id="metric-note">These external geometric diagnostics help interpret selection; they are not paper performance metrics. Distances use the scaled input coordinates, so their values also depend on input scale.</p>
+  </section>
+
+  <section class="notes" aria-labelledby="notes-heading">
+    <h2 id="notes-heading">Reading the results</h2>
+    <p><strong>alpha controls the weights.</strong> Each step maximizes <code>easy + diversity</code>, where <code>easy = w_p / (1 + distance_to_centroid)</code>. At <code>alpha = 1</code>, the diversity weight is zero. Increasing alpha gives the distance-based diversity term more weight, but a parameter change does not always change the selected points.</p>
+    <p><strong>The code's diversity term differs from the usual mean pairwise distance.</strong> After adding a candidate, it sums distances over all unordered pairs, divides by the number of points, and multiplies by <code>w_d</code>. The diagnostic above divides by the number of pairs instead. At the first step there is only one point, so diversity is zero.</p>
+    <p><strong>Input scale also affects the trade-off.</strong> Scaling coordinates up increases the distance sum and reduces <code>1 / (1 + distance_to_centroid)</code>. Selection order can therefore change even at fixed alpha. Both plots share the same scale and axes; changing input scale rescales the axis labels while keeping relative point positions the same.</p>
+    <p><strong>Parameter limits.</strong> Use finite <code>alpha ≥ 1</code> for the intended weighting. The input should be a nonempty, finite numeric array with shape <code>(N, d)</code>; this example has <code>N = 44, d = 2</code>. Use an integer <code>num_samples</code> with <code>1 ≤ k ≤ N</code>. The original function also accepts <code>k = 0</code> and returns an empty selection; this page shows nonempty selections.</p>
+    <p><strong>Determinism.</strong> The function uses no random numbers: the same input and order give the same result. Seed <span id="seed">42</span> is used only to generate the synthetic points. When candidate scores tie, the function prefers the earlier input index.</p>
+  </section>
+
+  <details>
+    <summary>Internal scores for the current selection</summary>
+    <p class="hint">Each row contains the original function's returned scores for the point selected at that step. <code>easy</code> and <code>diversity</code> already include their weights; <code>total = easy + diversity</code>.</p>
+    <div class="score-scroll">
+      <table class="score-table">
+        <thead><tr><th scope="col">Step</th><th scope="col">Point ID</th><th scope="col">total</th><th scope="col">easy</th><th scope="col">diversity</th></tr></thead>
+        <tbody id="score-body"></tbody>
+      </table>
+    </div>
+  </details>
+
+  <footer class="source">
+    Source: <a href="https://github.com/Ancientshi/PersonaX/blob/000eae6c88fe31737bbd08c15a4b966ee88903dc/personax/sampling.py">personax/sampling.py</a> · commit <code id="source-commit"></code><br>
+    This page reads precomputed results and calculates the geometric diagnostics above. It runs no models, reads no real datasets, and makes no network requests.<br>
+    Source file SHA-256: <code id="source-sha"></code>
+  </footer>
+</main>
+<script>
+(() => {
+  'use strict';
+  const DATA = __DEMO_DATA__;
+  const root = document.getElementById('sampling-explorer');
+  const $ = id => root.querySelector('#' + id);
+  const NS = 'http://www.w3.org/2000/svg';
+  const referenceAlpha = 1.001;
+  const fmt = value => value === null ? '—' : Number(value).toFixed(3);
+  const key = value => String(Number(value));
+  const state = { alpha: 1.06, count: 8, scale: 1 };
+
+  if (!DATA || !Array.isArray(DATA.points) || !DATA.points.length || !DATA.runs) {
+    root.innerHTML = '<p class="error" role="alert">The precomputed function results are incomplete, so the explorer cannot be displayed.</p>';
+    return;
+  }
+  const n = DATA.points.length;
+  const baseCenter = DATA.points.reduce((a, p) => [a[0] + p[0] / n, a[1] + p[1] / n], [0, 0]);
+  const xmin = Math.min(...DATA.points.map(p => p[0]));
+  const xmax = Math.max(...DATA.points.map(p => p[0]));
+  const ymin = Math.min(...DATA.points.map(p => p[1]));
+  const ymax = Math.max(...DATA.points.map(p => p[1]));
+  const span = Math.max(xmax - xmin, ymax - ymin, 1e-6) * 1.2;
+  const baseDomain = { x0: (xmin + xmax - span) / 2, y0: (ymin + ymax - span) / 2, span };
+
+  DATA.alphas.forEach(alpha => {
+    const option = document.createElement('option');
+    option.value = key(alpha);
+    const suffix = alpha === 1 ? ' (easy only)' : alpha === 1.001 ? ' (reference)' : alpha === 1.06 ? ' (experiment setting)' : alpha === 1.1 ? ' (function default)' : '';
+    option.textContent = key(alpha) + suffix;
+    $('alpha').appendChild(option);
+  });
+  $('alpha').value = key(state.alpha);
+  $('sample-count').max = String(n);
+  $('source-commit').textContent = DATA.source_commit;
+  $('source-sha').textContent = DATA.source_sha256;
+  $('seed').textContent = DATA.seed;
+
+  function run(alpha) {
+    const result = DATA.runs[key(state.scale)]?.[key(alpha)];
+    if (!result || result.indices.length < state.count || result.scores.length < state.count) throw new Error('Missing precomputed run: scale=' + state.scale + ', alpha=' + alpha);
+    return result;
+  }
+
+  function distance(a, b) {
+    return Math.hypot(a[0] - b[0], a[1] - b[1]);
+  }
+
+  function diagnostics(points, indices, center) {
+    const selected = indices.map(i => points[i]);
+    const centroid = selected.reduce((sum, point) => sum + distance(point, center), 0) / selected.length;
+    let pairs = 0;
+    for (let i = 0; i < selected.length; i++) {
+      for (let j = i + 1; j < selected.length; j++) pairs += distance(selected[i], selected[j]);
+    }
+    const pairwise = selected.length > 1 ? pairs / (selected.length * (selected.length - 1) / 2) : null;
+    const coverage = points.reduce((sum, point) => sum + Math.min(...selected.map(chosen => distance(point, chosen))), 0) / points.length;
+    return { centroid, pairwise, coverage };
+  }
+
+  function el(tag, attributes, parent, content) {
+    const element = document.createElementNS(NS, tag);
+    Object.entries(attributes || {}).forEach(([name, value]) => element.setAttribute(name, String(value)));
+    if (content !== undefined) element.textContent = content;
+    if (parent) parent.appendChild(element);
+    return element;
+  }
+
+  function draw(svg, points, indices, center, color, prefix, alpha) {
+    const width = Math.max(260, Math.round(svg.getBoundingClientRect().width));
+    const height = Math.max(300, Math.min(430, width * .83));
+    const left = 45, top = 16, right = 17, bottom = 49;
+    const side = Math.min(width - left - right, height - top - bottom);
+    const frameX = left + (width - left - right - side) / 2;
+    const frameY = top;
+    const domain = { x0: baseDomain.x0 * state.scale, y0: baseDomain.y0 * state.scale, span: baseDomain.span * state.scale };
+    const px = x => frameX + (x - domain.x0) / domain.span * side;
+    const py = y => frameY + side - (y - domain.y0) / domain.span * side;
+    const selectedOrder = new Map(indices.map((index, order) => [index, order + 1]));
+    svg.replaceChildren();
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.style.height = height + 'px';
+    el('title', { id: prefix + '-plot-title' }, svg, `alpha ${alpha}, ${indices.length} selected points, input scale ${state.scale}`);
+    el('desc', { id: prefix + '-plot-desc' }, svg, `Gray points are unselected; colored points are selected. Numbers with leader lines show the first 14 selection steps. The diamond marks the first point; the cross marks the centroid of all points. Point IDs in selection order: ${indices.map(i => i + 1).join(', ')}. Both plots share the same axes.`);
+
+    for (let t = 0; t <= 3; t++) {
+      const fraction = t / 3;
+      const x = frameX + side * fraction;
+      const y = frameY + side * (1 - fraction);
+      el('line', { x1: x, x2: x, y1: frameY, y2: frameY + side, stroke: 'var(--grid)', 'stroke-width': 1 }, svg);
+      el('line', { x1: frameX, x2: frameX + side, y1: y, y2: y, stroke: 'var(--grid)', 'stroke-width': 1 }, svg);
+      const tx = domain.x0 + domain.span * fraction;
+      const ty = domain.y0 + domain.span * fraction;
+      el('text', { x, y: frameY + side + 20, 'text-anchor': 'middle', class: 'axis' }, svg, tx.toFixed(1));
+      el('text', { x: frameX - 8, y: y + 4, 'text-anchor': 'end', class: 'axis' }, svg, ty.toFixed(1));
+    }
+    el('rect', { x: frameX, y: frameY, width: side, height: side, fill: 'none', stroke: 'var(--line)', 'stroke-width': 1, 'data-chart-frame': '' }, svg);
+    el('text', { x: frameX + side / 2, y: frameY + side + 43, 'text-anchor': 'middle', class: 'axis axis-title', 'data-axis': 'x' }, svg, 'Feature x (synthetic units)');
+    el('text', { x: 14, y: frameY + side / 2, 'text-anchor': 'middle', transform: `rotate(-90 14 ${frameY + side / 2})`, class: 'axis axis-title', 'data-axis': 'y' }, svg, 'Feature y (synthetic units)');
+
+    points.forEach((point, index) => {
+      if (selectedOrder.has(index)) return;
+      const mark = el('circle', { cx: px(point[0]), cy: py(point[1]), r: 4, fill: 'var(--point)', opacity: .8 }, svg);
+      el('title', {}, mark, `Point ID ${index + 1}; unselected; (${point[0].toFixed(3)}, ${point[1].toFixed(3)})`);
+    });
+    indices.forEach((index, order) => {
+      const point = points[index];
+      const x = px(point[0]), y = py(point[1]);
+      if (order === 0) el('path', { d: `M${x},${y - 10}L${x + 10},${y}L${x},${y + 10}L${x - 10},${y}Z`, fill: 'none', stroke: color, 'stroke-width': 2 }, svg);
+      const mark = el('circle', { cx: x, cy: y, r: 5.5, fill: color, stroke: 'var(--bg)', 'stroke-width': 1 }, svg);
+      el('title', {}, mark, `Step ${order + 1}; point ID ${index + 1}; (${point[0].toFixed(3)}, ${point[1].toFixed(3)})`);
+    });
+    const cx = px(center[0]), cy = py(center[1]);
+    el('path', { d: `M${cx - 6},${cy}H${cx + 6}M${cx},${cy - 6}V${cy + 6}`, stroke: 'var(--center)', 'stroke-width': 2, fill: 'none' }, svg);
+    const selectedPixels = indices.map(index => [px(points[index][0]), py(points[index][1])]);
+    const labelPixels = [];
+    indices.slice(0, 14).forEach((index, order) => {
+      const [x, y] = selectedPixels[order];
+      let best = null;
+      for (const radius of [19, 29, 41, 55]) {
+        for (let angle = 0; angle < 24; angle++) {
+          const lx = x + radius * Math.cos(angle * Math.PI / 12);
+          const ly = y + radius * Math.sin(angle * Math.PI / 12);
+          if (lx < frameX + 11 || lx > frameX + side - 11 || ly < frameY + 11 || ly > frameY + side - 11) continue;
+          const pointClearance = Math.min(...selectedPixels.map(p => Math.hypot(lx - p[0], ly - p[1]))) - 14;
+          const labelClearance = labelPixels.length ? Math.min(...labelPixels.map(p => Math.hypot(lx - p[0], ly - p[1]))) - 24 : 30;
+          const clearance = Math.min(pointClearance, labelClearance);
+          const value = Math.min(clearance, 7) - radius * .035;
+          if (!best || value > best.value) best = { x: lx, y: ly, value };
+        }
+      }
+      if (!best) best = { x: x + 15, y: y - 15 };
+      labelPixels.push([best.x, best.y]);
+      el('line', { x1: x, y1: y, x2: best.x, y2: best.y, stroke: color, 'stroke-width': .8, opacity: .7 }, svg);
+      const label = el('g', {}, svg);
+      el('circle', { cx: best.x, cy: best.y, r: 10.5, fill: color }, label);
+      el('text', { x: best.x, y: best.y + 4, 'text-anchor': 'middle', class: 'order' }, label, order + 1);
+      el('title', {}, label, `Step ${order + 1}: point ID ${index + 1}`);
+    });
+  }
+
+  function update() {
+    const current = run(state.alpha), reference = run(referenceAlpha);
+    const curIndices = current.indices.slice(0, state.count);
+    const refIndices = reference.indices.slice(0, state.count);
+    const points = DATA.points.map(p => [p[0] * state.scale, p[1] * state.scale]);
+    const center = baseCenter.map(x => x * state.scale);
+    const wp = state.alpha ** -10;
+    $('alpha-output').textContent = key(state.alpha);
+    $('count-output').textContent = `${state.count} / ${n}`;
+    $('wp').textContent = wp.toFixed(3);
+    $('wd').textContent = (1 - wp).toFixed(3);
+    $('current-alpha').textContent = key(state.alpha);
+    $('metric-alpha').textContent = key(state.alpha);
+    $('current-caption').textContent = state.alpha === 1 ? 'Diversity weight is zero' : state.alpha === 1.1 ? 'Original function default' : state.alpha === 1.06 ? 'Common experiment setting' : '';
+    const overlap = curIndices.filter(index => refIndices.includes(index)).length;
+    const sameOrder = curIndices.every((index, order) => index === refIndices[order]);
+    $('comparison-message').textContent = `Both plots use k = ${state.count} and scale × ${state.scale}; ${overlap} / ${state.count} selected points are shared.` + (sameOrder ? ' The points and order are identical.' : overlap === state.count ? ' The points match, but the order differs.' : ' The selected sets differ.');
+    $('reference-selection').innerHTML = '<strong>Point IDs in selection order: </strong>' + refIndices.map(i => i + 1).join(' → ');
+    $('current-selection').innerHTML = '<strong>Point IDs in selection order: </strong>' + curIndices.map(i => i + 1).join(' → ');
+    draw($('reference-plot'), points, refIndices, center, 'var(--blue)', 'reference', referenceAlpha);
+    draw($('current-plot'), points, curIndices, center, 'var(--orange)', 'current', state.alpha);
+    const refMetric = diagnostics(points, refIndices, center);
+    const curMetric = diagnostics(points, curIndices, center);
+    ['centroid', 'pairwise', 'coverage'].forEach(metric => {
+      $('ref-' + metric).textContent = fmt(refMetric[metric]);
+      $('cur-' + metric).textContent = fmt(curMetric[metric]);
+    });
+    $('score-body').replaceChildren();
+    curIndices.forEach((index, order) => {
+      const row = document.createElement('tr');
+      [order + 1, index + 1, ...current.scores[order].map(value => Number(value).toFixed(4))].forEach(value => {
+        const cell = document.createElement('td');
+        cell.textContent = value;
+        row.appendChild(cell);
+      });
+      $('score-body').appendChild(row);
+    });
+  }
+
+  $('alpha').addEventListener('change', event => { state.alpha = Number(event.target.value); update(); });
+  $('sample-count').addEventListener('input', event => { state.count = Number(event.target.value); update(); });
+  $('scale').addEventListener('change', event => { state.scale = Number(event.target.value); update(); });
+  let resizeFrame;
+  new ResizeObserver(() => {
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(update);
+  }).observe(root);
+  update();
+})();
+</script>
+</body>
+</html>
